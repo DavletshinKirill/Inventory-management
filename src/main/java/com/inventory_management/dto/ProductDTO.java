@@ -9,11 +9,13 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductDTO extends BaseEntityDTO {
+public class ProductDTO extends BaseEntityDTO{
 
     private String title;
 
+
     private String description;
+
 
     private double price;
 

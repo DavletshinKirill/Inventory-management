@@ -16,7 +16,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Product extends BaseEntity {
 
-    @Column(name = "title", nullable = false)
+    @Column(name = "title", nullable = false, unique = true)
     private String title;
 
     @Column(name = "description", nullable = false)
@@ -25,6 +25,6 @@ public class Product extends BaseEntity {
     @Column(name = "price", nullable = false)
     private double price;
 
-    @Column(name = "available quantity", nullable = false)
-    private int availableQuantity;
+    @Column(name = "image", nullable = false)
+    private String image;
 }
