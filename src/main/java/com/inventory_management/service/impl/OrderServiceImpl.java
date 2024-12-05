@@ -2,9 +2,12 @@ package com.inventory_management.service.impl;
 
 import com.inventory_management.domain.Order;
 import com.inventory_management.domain.OrderStatus;
+import com.inventory_management.domain.exception.ResourceNotFoundException;
+import com.inventory_management.repositories.OrderRepository;
 import com.inventory_management.service.interfaces.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,19 +15,29 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
+
+    private final OrderRepository orderRepository;
+
     @Override
+    @Transactional
     public Order createOrder(Order order) {
-        return null;
+        return orderRepository.save(order);
     }
 
     @Override
+    @Transactional
     public Order updateStatus(UUID id, OrderStatus status) {
-        return null;
+        Order order = getById(id);
+        order.setStatus(status);
+        return orderRepository.save(order);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Order getById(UUID id) {
-        return null;
+        return orderRepository.findById(id).orElseThrow(
+                ()-> new ResourceNotFoundException("Order not found")
+        );
     }
 
     @Override
@@ -33,7 +46,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public void deleteOrder(UUID id) {
-
+        Order order = getById(id);
+        order.setProducts(List.of());
+        orderRepository.delete(order);
     }
 }

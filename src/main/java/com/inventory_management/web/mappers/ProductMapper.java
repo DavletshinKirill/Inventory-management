@@ -5,6 +5,7 @@ import com.inventory_management.web.dto.ProductDTO;
 import org.mapstruct.Mapper;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 @Mapper(componentModel = "spring")
@@ -14,6 +15,6 @@ public interface ProductMapper {
 
     Product toEntity(ProductDTO orderDTO);
 
-    ArrayList<ProductDTO> listToDTO(ArrayList<Product> listOfPosts);
+    List<ProductDTO> listToDTO(List<Product> listOfPosts);
 
 }

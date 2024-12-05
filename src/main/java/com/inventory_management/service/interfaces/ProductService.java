@@ -1,6 +1,8 @@
 package com.inventory_management.service.interfaces;
 
 import com.inventory_management.domain.Product;
+import com.inventory_management.domain.ProductImage;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -10,8 +12,9 @@ public interface ProductService {
     Product createProduct(Product product);
     Product updateProduct(Product product);
     Product updatePrice(UUID productUUID, BigDecimal price);
-    Product updateStockQuantity(UUID productUUID, BigDecimal price);
+    Product updateStockQuantity(UUID productUUID, int stockQuantity);
     Product getProduct(UUID productUUID);
     void deleteProduct(UUID productUUID);
     List<Product> getProducts(int offset, int limit);
+    Product uploadImage(UUID productUUID, ProductImage productImage);
 }
