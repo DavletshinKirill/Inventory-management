@@ -6,9 +6,6 @@ volumes:
   minio-data:
     driver: local
 
-networks:
-  keycloak-network:
-
 services:
   postgres:
     image: 'postgres:16'
@@ -20,27 +17,32 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./src/main/resources/db-init:/docker-entrypoint-initdb.d
       - db-data:/var/lib/postgresql/data
-    networks:
-      - keycloak-network
 
   keycloak:
-    image: keycloak/keycloak:26.0
+    image: quay.io/keycloak/keycloak:26.0.7
     environment:
-      - DB_VENDOR=POSTGRES
-      - DB_ADDR=postgres
-      - DB_DATABASE=keycloak
-      - DB_USER=keycloak
-      - DB_PASSWORD=keycloak
-      - KEYCLOAK_USER=admin
-      - KEYCLOAK_PASSWORD=admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DATABASE}
+      KC_DB_USERNAME: ${POSTGRES_USERNAME}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8080
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+
+      KC_LOG_LEVEL: info
+      KC_METRICS_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
     ports:
       - "8080:8080"
     depends_on:
       - postgres
-    networks:
-      - keycloak-network
+    command: start-dev
+
 
   minio:
     image: minio/minio:latest
