@@ -82,6 +82,10 @@ public class ApplicationConfig {
                         .requestMatchers("/v3/api-docs/**")
                         .permitAll()
                         .requestMatchers(antMatcher(HttpMethod.GET, "/api/v1/product/**")).permitAll()
+                        .requestMatchers(antMatcher(HttpMethod.POST, "/api/v1/product/**")).hasRole("ADMIN")
+                        .requestMatchers(antMatcher(HttpMethod.PUT, "/api/v1/product/**")).hasRole("ADMIN")
+                        .requestMatchers(antMatcher(HttpMethod.PATCH, "/api/v1/product/**")).hasRole("ADMIN")
+                        .requestMatchers(antMatcher(HttpMethod.DELETE, "/api/v1/product/**")).hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .build();
     }

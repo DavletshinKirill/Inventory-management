@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +21,7 @@ import java.util.UUID;
 @RequestMapping("api/v1/order")
 @RequiredArgsConstructor
 @Tag(name = "Order Controller", description = "Order API")
+@Slf4j
 public class OrderController {
 
     private static final String userKeyInSecurityContextHolder = "userId";
@@ -62,8 +63,11 @@ public class OrderController {
 
     @Operation(summary = "Get Order By User Id")
     @GetMapping(value = "get/by_user")
-    public List<OrderDTO> getOrders() {
+    public List<OrderDTO> getOrders(
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "5") int limit
+    ) {
         UUID userId = UUID.fromString(httpSession.getAttribute(userKeyInSecurityContextHolder).toString());
-        return orderMapper.toDto(orderService.getAllOrdersByUserId(userId));
+        return orderMapper.toDto(orderService.getAllOrdersByUserId(userId, offset, limit));
     }
 }

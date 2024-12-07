@@ -10,6 +10,6 @@ public interface OrderService {
     Order createOrder(Order order, UUID userId);
     Order updateStatus(UUID id, OrderStatus status);
     Order getById(UUID id);
-    List<Order> getAllOrdersByUserId(UUID userId);
+    List<Order> getAllOrdersByUserId(UUID userId, int offset, int limit);
     void deleteOrder(UUID id);
 }

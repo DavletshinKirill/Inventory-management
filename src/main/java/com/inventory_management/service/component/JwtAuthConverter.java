@@ -25,13 +25,14 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
+    private final HttpSession httpSession;
+
     private static final String jwtKeyToUserId = "sub";
     private static final String userKeyInSecurityContextHolder = "userId";
 
     private final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter =
             new JwtGrantedAuthoritiesConverter();
 
-    private final HttpSession httpSession;
 
     @Value("${jwt.auth.converter.principle-attribute}")
     private String principleAttribute;
@@ -44,8 +45,8 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
                 jwtGrantedAuthoritiesConverter.convert(jwt).stream(),
                 extractResourceRoles(jwt).stream()
         ).collect(Collectors.toSet());
-      String userId = jwt.getClaims().get(jwtKeyToUserId).toString();
-      httpSession.setAttribute(userKeyInSecurityContextHolder, userId);
+        String userId = jwt.getClaims().get(jwtKeyToUserId).toString();
+        httpSession.setAttribute(userKeyInSecurityContextHolder, userId);
         return new JwtAuthenticationToken(
                 jwt,
                 authorities,

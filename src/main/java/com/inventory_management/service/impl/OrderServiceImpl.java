@@ -2,13 +2,19 @@ package com.inventory_management.service.impl;
 
 import com.inventory_management.domain.Order;
 import com.inventory_management.domain.OrderStatus;
+import com.inventory_management.domain.Product;
 import com.inventory_management.domain.exception.ResourceNotFoundException;
 import com.inventory_management.repositories.OrderRepository;
 import com.inventory_management.service.interfaces.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,8 +48,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getAllOrdersByUserId(UUID userId) {
-        return List.of();
+    public List<Order> getAllOrdersByUserId(UUID userId, int offset, int limit) {
+        Pageable pageable = PageRequest.of(offset, limit);
+        Page<Order> orders = orderRepository.findByUserId(userId, pageable);
+        return orders.hasContent() ? new ArrayList<>(orders.getContent()) : Collections.emptyList();
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.inventory_management.service.interfaces.ProductImageService;
 import com.inventory_management.service.interfaces.ProductService;
 import com.inventory_management.web.dto.ProductDTO;
 import com.inventory_management.web.mappers.ProductMapper;
+import com.inventory_management.web.validators.OnCreate;
 import com.inventory_management.web.validators.OnUpdate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
@@ -37,8 +37,7 @@ public class ProductController {
 
     @Operation(summary = "Create Product")
     @PostMapping(value = "/create")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ProductDTO createProduct(@Validated @RequestBody ProductDTO productDTO) {
+    public ProductDTO createProduct(@Validated(OnCreate.class) @RequestBody ProductDTO productDTO) {
 
         Product product = productMapper.toEntity(productDTO);
         Product createdProduct = productService.createProduct(product);
@@ -47,7 +46,6 @@ public class ProductController {
 
     @Operation(summary = "Update Product")
     @PutMapping(value = "/update")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ProductDTO update(@Validated(OnUpdate.class) @RequestBody ProductDTO productDTO) {
         Product product = productMapper.toEntity(productDTO);
         Product createdProduct = productService.updateProduct(product);
@@ -56,7 +54,6 @@ public class ProductController {
 
     @Operation(summary = "Update Price Product")
     @PatchMapping(value = "/update/price/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ProductDTO updatePrice(@PathVariable UUID id,
                                   @RequestParam(defaultValue = "20000") BigDecimal price) {
         
@@ -66,7 +63,6 @@ public class ProductController {
 
     @Operation(summary = "Update Stock Quantity Product")
     @PatchMapping(value = "/update/quantity/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ProductDTO updateStockQuantity(@PathVariable UUID id,
                                     @RequestParam(defaultValue = "5") int stockQuantity) {
         Product createdProduct = productService.updateStockQuantity(id, stockQuantity);
@@ -113,7 +109,6 @@ public class ProductController {
 
     @Operation(summary = "Upload Image")
     @PostMapping("/upload/image/{productId}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ProductDTO uploadImage(@PathVariable UUID productId, ProductImage product) {
         Product productReturned = productService.uploadImage(productId, product);
         return productMapper.toDto(productReturned);
