@@ -4,7 +4,6 @@ import com.inventory_management.domain.Product;
 import com.inventory_management.web.dto.ProductDTO;
 import org.mapstruct.Mapper;
 
-import java.util.ArrayList;
 import java.util.List;
 
 

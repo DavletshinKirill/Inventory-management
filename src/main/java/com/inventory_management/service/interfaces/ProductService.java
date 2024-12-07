@@ -2,7 +2,6 @@ package com.inventory_management.service.interfaces;
 
 import com.inventory_management.domain.Product;
 import com.inventory_management.domain.ProductImage;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;

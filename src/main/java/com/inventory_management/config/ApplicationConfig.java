@@ -1,66 +1,109 @@
 package com.inventory_management.config;
-
+import com.inventory_management.service.component.JwtAuthConverter;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
-import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
-import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import java.util.stream.Stream;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
+
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+@RequiredArgsConstructor
 public class ApplicationConfig {
+
+    private final HttpSession httpSession;
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
-        http.oauth2Login(Customizer.withDefaults());
+    public JwtAuthConverter jwtAuthConverter() {
+        return new JwtAuthConverter(httpSession);
+    }
+
+    @Bean
+    @SneakyThrows
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+        http.oauth2ResourceServer(oauth2 -> oauth2.jwt(
+                jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter())
+        ));
 
         return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .sessionManagement(sessionManagement ->
+                        sessionManagement
+                                .sessionCreationPolicy(
+                                        SessionCreationPolicy.STATELESS
+                                )
+                )
+                .exceptionHandling(configurer ->
+                        configurer.authenticationEntryPoint(
+                                        (request, response, exception) -> {
+                                            response.setStatus(
+                                                    HttpStatus.UNAUTHORIZED
+                                                            .value()
+                                            );
+                                            response.getWriter()
+                                                    .write("Unauthorized.");
+                                        })
+                                .accessDeniedHandler(
+                                        (request, response, exception) -> {
+                                            response.setStatus(
+                                                    HttpStatus.FORBIDDEN
+                                                            .value()
+                                            );
+                                            response.getWriter()
+                                                    .write("Unauthorized.");
+                                        }))
                 .authorizeHttpRequests(c -> c
+                        .requestMatchers("/swagger-ui/**")
+                        .permitAll()
+                        .requestMatchers("/v3/api-docs/**")
+                        .permitAll()
+                        .requestMatchers(antMatcher(HttpMethod.GET, "/api/v1/product/**")).permitAll()
                         .anyRequest().authenticated())
                 .build();
     }
 
     @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        var converter = new JwtAuthenticationConverter();
-        var jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        converter.setPrincipalClaimName("preferred_username");
-        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
-            var authorities = jwtGrantedAuthoritiesConverter.convert(jwt);
-            var roles = jwt.getClaimAsStringList("spring_sec_roles");
-
-            return Stream.concat(authorities.stream(),
-                            roles.stream()
-                                    .filter(role -> role.startsWith("ROLE_"))
-                                    .map(SimpleGrantedAuthority::new)
-                                    .map(GrantedAuthority.class::cast))
-                    .toList();
-        });
-
-        return converter;
-    }
-
-    @Bean
-    public OAuth2UserService<OidcUserRequest, OidcUser> oAuth2UserService() {
-        var oidcUserService = new OidcUserService();
-        return userRequest -> {
-            var oidcUser = oidcUserService.loadUser(userRequest);
-            var roles = oidcUser.getClaimAsStringList("spring_sec_roles");
-            var authorities = Stream.concat(oidcUser.getAuthorities().stream(),
-                            roles.stream()
-                                    .filter(role -> role.startsWith("ROLE_"))
-                                    .map(SimpleGrantedAuthority::new)
-                                    .map(GrantedAuthority.class::cast))
-                    .toList();
-
-            return new DefaultOidcUser(authorities, oidcUser.getIdToken(), oidcUser.getUserInfo());
-        };
+    public OpenAPI openAPI() {
+        return new OpenAPI()
+                .addSecurityItem(new SecurityRequirement()
+                        .addList("bearerAuth"))
+                .components(
+                        new Components()
+                                .addSecuritySchemes("bearerAuth",
+                                        new SecurityScheme()
+                                                .type(SecurityScheme.Type.HTTP)
+                                                .scheme("bearer")
+                                                .bearerFormat("JWT")
+                                )
+                )
+                .info(new Info()
+                        .title("Task list API")
+                        .description("Demo Spring Boot application")
+                        .version("1.0")
+                );
     }
 }

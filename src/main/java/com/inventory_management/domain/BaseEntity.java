@@ -15,6 +15,6 @@ import java.util.UUID;
 public class BaseEntity {
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     protected UUID id;
 }

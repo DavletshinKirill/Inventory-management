@@ -4,7 +4,10 @@ import com.inventory_management.domain.OrderStatus;
 import com.inventory_management.domain.Product;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -14,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderDTO extends BaseEntityDTO {
-    private List<Product> products;
+    private List<ProductDTO> products;
 
     @Schema(description = "Статус заказа",
             example = "ORDER_NOT_PAID",

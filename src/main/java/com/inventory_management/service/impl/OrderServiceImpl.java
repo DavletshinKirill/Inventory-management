@@ -20,7 +20,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Order createOrder(Order order) {
+    public Order createOrder(Order order, UUID userId) {
+        order.setUserId(userId);
         return orderRepository.save(order);
     }
 
@@ -41,7 +42,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getAllOrdersByUserId() {
+    public List<Order> getAllOrdersByUserId(UUID userId) {
         return List.of();
     }
 

@@ -7,16 +7,20 @@ import com.inventory_management.service.interfaces.ProductImageService;
 import com.inventory_management.service.interfaces.ProductService;
 import com.inventory_management.web.dto.ProductDTO;
 import com.inventory_management.web.mappers.ProductMapper;
+import com.inventory_management.web.validators.OnUpdate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-
 import lombok.SneakyThrows;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -33,7 +37,9 @@ public class ProductController {
 
     @Operation(summary = "Create Product")
     @PostMapping(value = "/create")
-    public ProductDTO createProduct(@RequestBody ProductDTO productDTO) {
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ProductDTO createProduct(@Validated @RequestBody ProductDTO productDTO) {
+
         Product product = productMapper.toEntity(productDTO);
         Product createdProduct = productService.createProduct(product);
         return productMapper.toDto(createdProduct);
@@ -41,23 +47,26 @@ public class ProductController {
 
     @Operation(summary = "Update Product")
     @PutMapping(value = "/update")
-    public ProductDTO update(@RequestBody ProductDTO productDTO) {
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ProductDTO update(@Validated(OnUpdate.class) @RequestBody ProductDTO productDTO) {
         Product product = productMapper.toEntity(productDTO);
         Product createdProduct = productService.updateProduct(product);
         return productMapper.toDto(createdProduct);
     }
 
     @Operation(summary = "Update Price Product")
-    @PutMapping(value = "/update/{id}")
+    @PatchMapping(value = "/update/price/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ProductDTO updatePrice(@PathVariable UUID id,
-                                  @RequestParam(defaultValue = "20000")BigDecimal price) {
+                                  @RequestParam(defaultValue = "20000") BigDecimal price) {
         
         Product createdProduct = productService.updatePrice(id, price);
         return productMapper.toDto(createdProduct);
     }
 
     @Operation(summary = "Update Stock Quantity Product")
-    @PatchMapping(value = "/update/{id}")
+    @PatchMapping(value = "/update/quantity/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ProductDTO updateStockQuantity(@PathVariable UUID id,
                                     @RequestParam(defaultValue = "5") int stockQuantity) {
         Product createdProduct = productService.updateStockQuantity(id, stockQuantity);
@@ -65,9 +74,16 @@ public class ProductController {
     }
 
     @Operation(summary = "Delete Product")
-    @PatchMapping(value = "/delete/{id}")
+    @DeleteMapping(value = "/delete/{id}")
     public void deleteProduct(@PathVariable("id") UUID productId) {
         productService.deleteProduct(productId);
+    }
+
+    @Operation(summary = "Get Product")
+    @GetMapping(value = "/get/{id}")
+    public ProductDTO getProduct(@PathVariable("id") UUID productId) {
+        Product product = productService.getProduct(productId);
+        return productMapper.toDto(product);
     }
 
     @Operation(summary = "Get Products")
@@ -97,6 +113,7 @@ public class ProductController {
 
     @Operation(summary = "Upload Image")
     @PostMapping("/upload/image/{productId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ProductDTO uploadImage(@PathVariable UUID productId, ProductImage product) {
         Product productReturned = productService.uploadImage(productId, product);
         return productMapper.toDto(productReturned);

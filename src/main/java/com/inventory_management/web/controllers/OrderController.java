@@ -5,9 +5,13 @@ import com.inventory_management.domain.OrderStatus;
 import com.inventory_management.service.interfaces.OrderService;
 import com.inventory_management.web.dto.OrderDTO;
 import com.inventory_management.web.mappers.OrderMapper;
+import com.inventory_management.web.validators.OnUpdate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,14 +23,19 @@ import java.util.UUID;
 @Tag(name = "Order Controller", description = "Order API")
 public class OrderController {
 
+    private static final String userKeyInSecurityContextHolder = "userId";
+
     private final OrderMapper orderMapper;
     private final OrderService orderService;
+    private final HttpSession httpSession;
 
     @Operation(summary = "Create Order")
     @PostMapping(value = "create")
-    public OrderDTO createOrder(@RequestBody OrderDTO orderDTO) {
+    public OrderDTO createOrder(@Validated(OnUpdate.class) @RequestBody OrderDTO orderDTO) {
         Order order = orderMapper.toEntity(orderDTO);
-       Order savedOrder = orderService.createOrder(order);
+        UUID userId = UUID.fromString(httpSession.getAttribute(userKeyInSecurityContextHolder).toString());
+
+       Order savedOrder = orderService.createOrder(order, userId);
         return orderMapper.toDto(savedOrder);
     }
 
@@ -54,6 +63,7 @@ public class OrderController {
     @Operation(summary = "Get Order By User Id")
     @GetMapping(value = "get/by_user")
     public List<OrderDTO> getOrders() {
-        return orderMapper.toDto(orderService.getAllOrdersByUserId());
+        UUID userId = UUID.fromString(httpSession.getAttribute(userKeyInSecurityContextHolder).toString());
+        return orderMapper.toDto(orderService.getAllOrdersByUserId(userId));
     }
 }

@@ -5,9 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
-import org.hibernate.type.SqlTypes;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,8 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Order extends BaseEntity {
 
-    @OneToMany
-    @JoinColumn(name = "product_id")
+    @ManyToMany(fetch = FetchType.LAZY)
     private List<Product> products;
 
     @Enumerated(EnumType.STRING)
