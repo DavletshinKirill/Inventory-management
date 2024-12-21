@@ -11,11 +11,24 @@ volumes:
     driver: local
 
 services:
+  app:
+    build: .
+    container_name: "inventory-management"
+    networks:
+      - app-network
+    depends_on:
+      - postgres
+      - minio
+      - keycloak
+    env_file:
+      - .env
+    ports:
+      - '8081:8081'
+
   postgres:
     image: 'postgres:16'
     networks:
       - app-network
-    container_name: 'inventory-postgres'
     environment:
       POSTGRES_USER: ${POSTGRES_USERNAME}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -30,7 +43,6 @@ services:
     image: quay.io/keycloak/keycloak:26.0.7
     networks:
       - app-network
-    container_name: 'inventory-keycloak'
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DATABASE}
@@ -57,7 +69,6 @@ services:
     image: minio/minio:latest
     networks:
       - app-network
-    container_name: 'inventory-minio'
     environment:
       - MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
       - MINIO_ROOT_PASSWORD=${MINIO_ACCESS_KEY}
